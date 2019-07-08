@@ -20,7 +20,7 @@
         type="danger"
         :loading="isSending"
         @click="onSubmit">
-        SEND
+        ADD
       </el-button>
     </el-form-item>
   </el-form>

@@ -10,6 +10,8 @@ import { cache, newCommandServiceOptions, newQueryServiceOptions} from '../../ut
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 
+var moment = require('moment');
+
 function initialState () {
   return {
     accountId: cache.username,
@@ -55,7 +57,7 @@ const getters = {
             to: destAccountId === state.accountId ? 'you' : _.split(destAccountId, '@', 1),
             assetId: _.split(assetId, '#', 1),
             amount: amount,
-            date: createdTime,
+            date: moment(createdTime).format('DD-MM-YYYY HH:MM'),
             message: description
           }
     
