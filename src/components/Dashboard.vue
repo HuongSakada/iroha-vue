@@ -24,6 +24,10 @@
             <el-menu-item index="/dashboard/transfer-asset">Transfer asset</el-menu-item>
             <el-menu-item index="/dashboard/account-detail">Account detail</el-menu-item>
           </el-submenu>
+
+          <el-menu-item index="/logout" @click="onLogout">
+            <span slot="title">Logout</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
     
@@ -64,8 +68,13 @@ export default {
   },
   methods: {
     ...mapActions([
-      'getAccountDetail'
-    ])
+      'getAccountDetail',
+      'logout'
+    ]),
+    onLogout () {
+      this.logout()
+        .then(() => this.$router.push('/login'))
+    }
   }
 }
 </script>

@@ -6,8 +6,8 @@ import {
 export const DEFAULT_TIMEOUT_LIMIT = 5000
 
 export const cache = {
-  username: JSON.parse(localStorage.getItem('user-token')).username || '',
-  key: JSON.parse(localStorage.getItem('user-token')).key || '',
+  username: localStorage.getItem('user-token')?JSON.parse(localStorage.getItem('user-token')).username : '',
+  key: localStorage.getItem('user-token')?JSON.parse(localStorage.getItem('user-token')).key : '',
   nodeIp: 'http://0.0.0.0:8081'
 }
 

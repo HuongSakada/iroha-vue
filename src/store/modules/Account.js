@@ -92,6 +92,13 @@ const mutations = {
 }
 
 const actions = {
+  logout () {
+    cache.username = null
+    cache.key = null
+
+    localStorage.clear()
+  },
+
   login ({ commit }, { username, privateKey }) {
     cache.key = privateKey
     cache.username = username

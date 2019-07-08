@@ -3,22 +3,40 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
+const ifNotAuthenticated = (to, from, next) => {
+  if (localStorage.getItem('user-token') === null) {
+    next()
+    return
+  }
+  next('/')
+}
+
+const ifAuthenticated = (to, from, next) => {
+  if (localStorage.getItem('user-token')) {
+    next()
+    return
+  }
+  next('/login')
+}
+
 const router = new VueRouter({
   mode: 'history',
   routes: [
     {
-      path: '',
-      redirect: '/login'
+      path: '/',
+      redirect: '/dashboard/transactions'
     },
     {
       path: '/login',
       name: 'login',
-      component: require('@/components/Login').default
+      component: require('@/components/Login').default,
+      beforeEnter: ifNotAuthenticated
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       component: require('@/components/Dashboard').default,
+      beforeEnter: ifAuthenticated,
       children: [
         {
           path: 'create-asset',
