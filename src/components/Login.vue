@@ -87,7 +87,7 @@ export default {
             username: this.form.username,
             privateKey: this.form.privateKey
         })
-        .then(account => {
+        .then(() => {
             this.$router.push('/dashboard/transactions')
         })
         .catch(err => {

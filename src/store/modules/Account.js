@@ -12,8 +12,7 @@ import { saveAs } from 'file-saver'
 
 function initialState () {
   return {
-    accountId: '',
-    nodeIp: cache.nodeIp,
+    accountId: cache.username,
     accountInfo: {
       name: '',
       phone: '',
@@ -89,7 +88,7 @@ const mutations = {
     if(!_.isEmpty(JSON.parse(jsonData))){
       state.accountInfo = JSON.parse(jsonData)[accountId]
     }
-  }
+  },
 }
 
 const actions = {
@@ -103,9 +102,12 @@ const actions = {
       accountId: cache.username
     })
     .then((account) => {
+      localStorage.setItem('user-token', JSON.stringify(cache))
+
       commit('getAccount', account)
     })
     .catch(err => {
+      localStorage.removeItem('user-token')
       throw err
     })
   },
@@ -141,6 +143,7 @@ const actions = {
   },
 
   createAccount ({ state }, {accountName, domainId}) {
+
     let { publicKey, privateKey } = cryptoHelper.generateKeyPair()
 
     if(!_.isEmpty(accountName.trim()) || _.isEmpty(domainId.trim())){
@@ -186,9 +189,6 @@ const actions = {
   },
 
   createAsset ({ state }, {assetName, domainId, precision}) {
-
-    console.log(newCommandServiceOptions(state.accountQuorum))
-
     return commands.createAsset(
       newCommandServiceOptions(state.accountQuorum),
       {
@@ -268,7 +268,6 @@ const actions = {
         commit('getAccountAssets', assets)
       })
       .catch(err => {
-        console.log(error)
         throw err
     })
   },
