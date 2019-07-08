@@ -122,5 +122,6 @@ export default {
 .login-form {
   width: 25rem;
   justify-content: center;
+  text-align: left;
 }
 </style>
