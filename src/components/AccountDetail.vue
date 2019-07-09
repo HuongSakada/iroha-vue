@@ -59,7 +59,6 @@ export default {
                 })
             })
             .catch(err => {
-                console.error(err)
                 this.$alert(err.message, 'Create account error', {
                 type: 'error'
                 })

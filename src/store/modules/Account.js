@@ -95,6 +95,12 @@ const mutations = {
 
 const actions = {
   logout () {
+    //Clear state value
+    const s = initialState()
+    Object.keys(s).forEach(key => {
+      state[key] = s[key]
+    })
+
     cache.username = null
     cache.key = null
 
