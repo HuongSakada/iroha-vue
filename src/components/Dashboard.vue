@@ -1,7 +1,10 @@
 <template>
   <el-container>
     <el-header>
-      <el-header>{{this.accountId}}</el-header>
+      <el-row>
+        <el-col :span="12" class="home">Iroha-Vue</el-col>
+        <el-col :span="12" class="username">{{this.accountId}}</el-col>
+      </el-row>
     </el-header>
     <el-container>
       <el-aside>
@@ -82,6 +85,17 @@ export default {
 <style scoped>
   .el-header {
     border-bottom: 1px solid white;
+    background-color: #e43e33;
+    color: #FFF;
+    line-height: 60px;
+  }
+  .el-header >>> .username {
+    text-align: right;
+  }
+  .el-header >>> .home {
+    text-align: left;
+    font-size: 2.5em;
+    font-weight: bolder;
   }
   .el-aside {
     width: 250px;
@@ -102,11 +116,5 @@ export default {
     background: #e43e33;
     color: rgb(255, 255, 255, 1);
     font-weight: 500;
-  }
-  .el-header {
-    background-color: #e43e33;
-    color: #FFF;
-    text-align: right;
-    line-height: 60px;
   }
 </style>
