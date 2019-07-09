@@ -3,15 +3,19 @@
   <el-form
     class="app-form"
     ref="form"
+    :rules="rules"
     :model="form">
-    <el-form-item label="Asset Name:">
-      <el-input name="name" v-model="form.name" />
+
+    <el-form-item label="Asset Name:" prop="name">
+      <el-input name="name" v-model="form.name" placeholder="assetname"/>
     </el-form-item>
-    <el-form-item label="Domain Name:">
+
+    <el-form-item label="Domain Name:" prop="domain">
       <el-input name="domain" v-model="form.domain" placeholder="iroha"/>
     </el-form-item>
-    <el-form-item label="Precision:">
-      <el-input name="precision" v-model="form.precision" />
+
+    <el-form-item label="Precision:" prop="precision">
+      <el-input name="precision" v-model.number="form.precision"/>
     </el-form-item>
 
     <el-form-item class="login-button-container">
@@ -35,31 +39,49 @@ export default {
   data () {
     return {
       form: {},
-      isSending: false
+      isSending: false,
+      rules: {
+        name: [
+          { required: true, trigger: 'change' },
+          { pattern: /^[a-z_0-9]{1,32}$/, trigger: 'blur' }
+        ],
+        domain: {required: true, trigger: 'change'},
+        precision: [
+          { required: true, trigger: 'change' },
+          { type: 'number', min: 1, max: 255, trigger: 'blur' }
+        ]
+      }
     }
   },
 
   methods: {
     onSubmit() {
-      this.isSending = true
-      this.$store.dispatch('createAsset', {
-        assetName: this.form.name,
-        domainId: this.form.domain,
-        precision: this.form.precision
-      })
-      .then(() => {
-        this.$message({
-          message: 'Create asset successful!',
-          type: 'success'
-        })
-      })
-      .catch(err => {
-        console.error(err)
-        this.$alert(err.message, 'Create asset error', {
-          type: 'error'
-        })
-      })
-      .finally(() => { this.isSending = false })
+      this.$refs['form'].validate((valid) => {
+        if(valid) {
+          this.isSending = true
+          this.$store.dispatch('createAsset', {
+            assetName: this.form.name,
+            domainId: this.form.domain,
+            precision: this.form.precision
+          })
+          .then(() => {
+            this.$message({
+              message: 'Create asset successful!',
+              type: 'success'
+            })
+          })
+          .catch(err => {
+            console.error(err)
+            this.$alert(err.message, 'Create asset error', {
+              type: 'error'
+            })
+          })
+          .finally(() => { this.isSending = false })
+        }
+        else {
+          return false
+        }
+      });
     }
   }
 }

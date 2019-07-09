@@ -3,13 +3,14 @@
   <el-form
     class="app-form"
     ref="form"
+    :rules="rules"
     :model="form">
-    <el-form-item label="Asset ID:">
-      <el-input name="assetId" v-model="form.assetId" placeholder="asset#domain"/>
+    <el-form-item label="Asset ID:" prop="assetId">
+      <el-input name="assetId" v-model="form.assetId" placeholder="assetname#domainname"/>
     </el-form-item>
 
-    <el-form-item label="Amount:">
-      <el-input name="amount" v-model="form.amount"/>
+    <el-form-item label="Amount:" prop="amount">
+      <el-input v-model.number="form.amount"></el-input>
     </el-form-item>
 
     <el-form-item class="send-button-container">
@@ -34,7 +35,17 @@ export default {
   data () {
     return {
       form: {},
-      isSending: false
+      isSending: false,
+      rules: {
+        assetId: [
+          { required: true, trigger: 'change' },
+          { pattern: /^[a-z_0-9]{1,32}#[a-z_0-9]{1,9}$/, trigger: 'blur' }
+        ],
+        amount: [
+          { required: true, trigger: 'change' },
+          { type: 'number', min: 1, trigger: 'blur' }
+        ]
+      }
     }
   },
 
@@ -53,24 +64,30 @@ export default {
           'getAccountAssets'
       ]),
       onSubmit() {
-        this.isSending = true
-        this.$store.dispatch('addAssetQuantity', {
-            assetId: this.form.assetId,
-            amount: this.form.amount
-        })
-        .then(() => {
-            this.$message({
-                message: 'Add asset quantity successful!',
-                type: 'success'
+        this.$refs['form'].validate((valid) => {
+          if(valid){
+            this.isSending = true
+            this.$store.dispatch('addAssetQuantity', {
+                assetId: this.form.assetId,
+                amount: String(this.form.amount)
             })
-        })
-        .catch(err => {
-            console.error(err)
-            this.$alert(err.message, 'Add asset quantit error', {
-                type: 'error'
+            .then(() => {
+                this.$message({
+                    message: 'Add asset quantity successful!',
+                    type: 'success'
+                })
             })
-        })
-        .finally(() => { this.isSending = false })
+            .catch(err => {
+                this.$alert(err.message, 'Add asset quantit error', {
+                    type: 'error'
+                })
+            })
+            .finally(() => { this.isSending = false })
+          }
+          else {
+            return false
+          }
+        });
       }
     }
 }

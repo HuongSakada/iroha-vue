@@ -4,7 +4,13 @@
     <div class="logo">
       <img id="logo" src="~@/assets/logo.svg" alt="Iroha">
     </div>
-    <el-form class="login-form" ref="form" :model="form" label-position="top">
+    <el-form 
+      class="login-form" 
+      ref="form" 
+      :rules="rules" 
+      :model="form" 
+      label-position="top">
+
       <el-form-item label="Username:" prop="username">
         <el-input
           name="username"
@@ -62,6 +68,16 @@ export default {
       form: {
         username: '',
         privateKey: ''
+      },
+      rules: {
+        username: [
+          { required: true, trigger: 'change' },
+          { pattern: /^[a-z_0-9]{1,32}@[a-z_0-9]{1,9}$/, trigger: 'blur' }
+        ],
+        privateKey: [
+          { required: true, trigger: 'change' },
+          { pattern: /^[a-z_A-Z_0-9]{64}/, trigger: 'blur' }
+        ]
       }
     }
   },
@@ -81,22 +97,29 @@ export default {
     },
 
     onSubmit () {
-        this.isLoading = true
+      this.$refs['form'].validate((valid) => {
+        if (valid) {
+          this.isLoading = true
 
-        this.login({
-            username: this.form.username,
-            privateKey: this.form.privateKey
-        })
-        .then(() => {
-            this.$router.push('/dashboard/transactions')
-        })
-        .catch(err => {
-            console.error(err)
-            this.$alert(err.message, 'Login error', {
-                type: 'error'
-            })
-        })
-        .finally(() => { this.isLoading = false })
+          this.login({
+              username: this.form.username,
+              privateKey: this.form.privateKey
+          })
+          .then(() => {
+              this.$router.push('/dashboard/transactions')
+          })
+          .catch(err => {
+              console.error(err)
+              this.$alert(err.message, 'Login error', {
+                  type: 'error'
+              })
+          })
+          .finally(() => { this.isLoading = false })
+        }
+        else{
+          return false
+        }
+      });
     }
   }
 }
@@ -120,7 +143,7 @@ export default {
   height: 5rem;
 }
 .login-form {
-  width: 25rem;
+  width: 30rem;
   justify-content: center;
   text-align: left;
 }
