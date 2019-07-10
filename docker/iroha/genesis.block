@@ -9,7 +9,7 @@
                         {
                            "addPeer": {
                               "peer": {
-                                 "address": "host.docker.internal:10001",
+                                 "address": "localhost:10001",
                                  "peerKey": "d04da271b57fe63426ae1dc97f6952104037411fcf4f3b739dc217f45e5fc99b"
                               }
                            }
@@ -33,7 +33,8 @@
                                  "can_get_roles",
                                  "can_read_assets",
                                  "can_remove_signatory",
-                                 "can_set_quorum"
+                                 "can_set_quorum",
+                                 "can_set_detail"
                               ]
                            }
                         },
@@ -98,6 +99,7 @@
                            }
                         }
                      ],
+                     "creatorAccountId": "admin@iroha",
                      "quorum": 1
                   }
                }

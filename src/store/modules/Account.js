@@ -12,6 +12,16 @@ import { saveAs } from 'file-saver'
 
 var moment = require('moment');
 
+const types = _([
+  'GET_ACCOUNT',
+  'GET_ACCOUNT_ASSETS',
+  'GET_ACCOUNT_TRANSACTIONS'
+]).chain()
+  .flatMap(x => [x + '_SUCCESS', x + '_FAILURE'])
+  .map(x => [x, x])
+  .fromPairs()
+  .value()
+
 function initialState () {
   return {
     accountId: cache.username,
@@ -25,6 +35,10 @@ function initialState () {
     assets: [],
     accountQuorum: 0
   }
+}
+
+function handleError (state, error) {
+  throw error
 }
 
 const state = initialState()
@@ -80,17 +94,31 @@ const getters = {
 }
 
 const mutations = {
-  getAccountAssets (state, assets) { state.assets = assets },
-  getAccountAssetTransactions (state, { assetId, transactions }) {Vue.set(state.rawAssetTransactions, assetId, transactions)},
-  getAccountQuorum (state, { quorum }) { state.accountQuorum = quorum },
-  getAccount (state, { jsonData, accountId, quorum }) { 
+  [types.GET_ACCOUNT_ASSETS_SUCCESS] (state, assets) { 
+    state.assets = assets 
+  },
+  [types.GET_ACCOUNT_ASSETS_FAILURE] (state, error) {
+    handleError(state, error)
+  },
+
+  [types.GET_ACCOUNT_TRANSACTIONS_SUCCESS] (state, { assetId, transactions }) {
+    Vue.set(state.rawAssetTransactions, assetId, transactions)
+  },
+  [types.GET_ACCOUNT_ASSETS_FAILURE] (state, error) {
+    handleError(state, error)
+  },
+
+  [types.GET_ACCOUNT_SUCCESS] (state, { jsonData, accountId, quorum }) { 
     state.accountQuorum = quorum
     state.accountId = accountId
 
-    if(!_.isEmpty(JSON.parse(jsonData))){
+    if(!_.isEmpty(JSON.parse(jsonData))) {
       state.accountInfo = JSON.parse(jsonData)[accountId]
     }
   },
+  [types.GET_ACCOUNT_FAILURE] (state, error) {
+    handleError(state, error)
+  }
 }
 
 const actions = {
@@ -119,11 +147,11 @@ const actions = {
     .then((account) => {
       localStorage.setItem('user-token', JSON.stringify(cache))
 
-      commit('getAccount', account)
+      commit(types.GET_ACCOUNT_SUCCESS, account)
     })
     .catch(err => {
       localStorage.removeItem('user-token')
-      throw err
+      commit(types.GET_ACCOUNT_FAILURE, err)
     })
   },
 
@@ -240,13 +268,13 @@ const actions = {
         firstTxHash: undefined
       })
       .then(responses => {
-        commit('getAccountAssetTransactions', {
+        commit(types.GET_ACCOUNT_TRANSACTIONS_SUCCESS, {
           assetId: assetId,
           transactions: responses
         })
       })
       .catch(err => {
-        throw err
+        commit(types.GET_ACCOUNT_TRANSACTIONS_FAILURE, err)
       })
   },
 
@@ -280,10 +308,10 @@ const actions = {
         accountId: state.accountId
       })
       .then(assets => {
-        commit('getAccountAssets', assets)
+        commit(types.GET_ACCOUNT_ASSETS_SUCCESS, assets)
       })
       .catch(err => {
-        throw err
+        commit(types.GET_ACCOUNT_ASSETS_FAILURE, err)
     })
   },
 
@@ -293,9 +321,11 @@ const actions = {
       {
       accountId: state.accountId
     })
-    .then((account) => commit('getAccount', account))
+    .then((account) => {
+      commit(types.GET_ACCOUNT_SUCCESS, account)
+    })
     .catch(err => {
-      throw err
+      commit(types.GET_ACCOUNT_FAILURE, err)
     })
   }
 }
