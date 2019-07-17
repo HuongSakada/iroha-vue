@@ -67,6 +67,11 @@ const router = new VueRouter({
           path: 'account-detail',
           name: 'account-detail',
           component: require('@/components/AccountDetail').default,
+        },
+        {
+          path: 'add-signatory',
+          name: 'add-signatory',
+          component: require('@/components/AddSignatory').default,
         }
       ]
     },

@@ -39,7 +39,8 @@
               v-if="userRoles.includes('money_creator')">
               Add asset qauntity
             </el-menu-item>
-            
+
+            <el-menu-item index="/dashboard/add-signatory">Add Signatory</el-menu-item>
             <el-menu-item index="/dashboard/transfer-asset">Transfer asset</el-menu-item>
             <el-menu-item index="/dashboard/account-detail">Account detail</el-menu-item>
           </el-submenu>
@@ -79,6 +80,7 @@ export default {
       if (this.$route.path.includes('add-asset-qauntity')) return '/dashboard/add-asset-qauntity'
       if (this.$route.path.includes('create-account')) return '/dashboard/create-account'
       if (this.$route.path.includes('account-detail')) return '/dashboard/account-detail'
+      if (this.$route.path.includes('add-signatory')) return '/dashboard/add-signatory'
       return this.$route.path
     },
 

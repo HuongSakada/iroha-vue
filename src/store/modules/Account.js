@@ -15,7 +15,8 @@ var moment = require('moment');
 const types = _([
   'GET_ACCOUNT',
   'GET_ACCOUNT_ASSETS',
-  'GET_ACCOUNT_ASSET_TRANSACTIONS'
+  'GET_ACCOUNT_ASSET_TRANSACTIONS',
+  'GET_SIGNATORIES'
 ]).chain()
   .flatMap(x => [x + '_SUCCESS', x + '_FAILURE'])
   .map(x => [x, x])
@@ -35,7 +36,8 @@ function initialState () {
     assets: [],
     accountQuorum: 0,
     roles: [],
-    permissions: []
+    permissions: [],
+    signatories: []
   }
 }
 
@@ -96,6 +98,10 @@ const getters = {
 
   getUserRoles (state) {
     return state.roles
+  },
+
+  getSignatories (state) {
+    return state.signatories
   }
 }
 
@@ -128,10 +134,29 @@ const mutations = {
   },
   [types.GET_ACCOUNT_FAILURE] (state, error) {
     handleError(state, error)
+  },
+
+  [types.GET_SIGNATORIES_SUCCESS] (state, signatories) {
+    state.signatories = signatories
+  },
+  [types.GET_SIGNATORIES_FAILURE] (state, error) {
+    handleError(state, error)
   }
 }
 
 const actions = {
+  addSignatory ({ commit, state}, publicKey) {
+    return commands.addSignatory(
+      newCommandServiceOptions(state.accountQuorum), 
+      {
+      accountId: state.accountId,
+      publicKey: publicKey
+    })
+    .catch(err => {
+      throw err
+    })
+  },
+
   logout () {
     //Clear state value
     const s = initialState()
@@ -371,6 +396,20 @@ const actions = {
     })
     .catch(err => {
       throw err
+    })
+  },
+
+  getSignatories ({ commit, state }) {
+    return queries.getSignatories(
+      newQueryServiceOptions(),
+      {
+        accountId: state.accountId
+      })
+      .then((signatories) => {
+        commit(types.GET_SIGNATORIES_SUCCESS, signatories)
+      })
+      .catch((err) => {
+        commit(types.GET_SIGNATORIES_FAILURE, err)
     })
   }
 }
