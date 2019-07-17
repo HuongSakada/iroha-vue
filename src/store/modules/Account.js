@@ -15,7 +15,7 @@ var moment = require('moment');
 const types = _([
   'GET_ACCOUNT',
   'GET_ACCOUNT_ASSETS',
-  'GET_ACCOUNT_TRANSACTIONS'
+  'GET_ACCOUNT_ASSET_TRANSACTIONS'
 ]).chain()
   .flatMap(x => [x + '_SUCCESS', x + '_FAILURE'])
   .map(x => [x, x])
@@ -33,7 +33,9 @@ function initialState () {
     rawAssetTransactions: {},
     rawTransactions: [],
     assets: [],
-    accountQuorum: 0
+    accountQuorum: 0,
+    roles: [],
+    permissions: []
   }
 }
 
@@ -90,6 +92,10 @@ const getters = {
 
   allAssets (state) {
     return state.assets
+  },
+
+  getUserRoles (state) {
+    return state.roles
   }
 }
 
@@ -101,16 +107,20 @@ const mutations = {
     handleError(state, error)
   },
 
-  [types.GET_ACCOUNT_TRANSACTIONS_SUCCESS] (state, { assetId, transactions }) {
+  [types.GET_ACCOUNT_ASSET_TRANSACTIONS_SUCCESS] (state, { assetId, transactions }) {
     Vue.set(state.rawAssetTransactions, assetId, transactions)
   },
   [types.GET_ACCOUNT_ASSETS_FAILURE] (state, error) {
     handleError(state, error)
   },
 
-  [types.GET_ACCOUNT_SUCCESS] (state, { jsonData, accountId, quorum }) { 
+  [types.GET_ACCOUNT_SUCCESS] (state, account) {
+    
+    let { jsonData, accountId, quorum } = account.getAccount().toObject()
+    
     state.accountQuorum = quorum
     state.accountId = accountId
+    state.roles = account.array[1]
 
     if(!_.isEmpty(JSON.parse(jsonData))) {
       state.accountInfo = JSON.parse(jsonData)[accountId]
@@ -139,7 +149,7 @@ const actions = {
     cache.key = privateKey
     cache.username = username
     
-    return queries.getAccount(
+    return queries.getRawAccount(
       newQueryServiceOptions(),
       {
       accountId: cache.username
@@ -185,7 +195,7 @@ const actions = {
     })
   },
 
-  createAccount ({ state }, {accountName, domainId}) {
+  createAccount ({ state }, { accountName, domainId }) {
 
     let { publicKey, privateKey } = cryptoHelper.generateKeyPair()
 
@@ -200,13 +210,15 @@ const actions = {
           }
         )
         .then(() => {
-          var zip = new JSZip();
-          zip.file(`${accountName}@${domainId}.priv`, privateKey);
-          zip.file(`${accountName}@${domainId}.pub`, publicKey);
+          var zip = new JSZip()
+          var accountId = `${accountName}@${domainId}`
+
+          zip.file(`${accountId}.priv`, privateKey)
+          zip.file(`${accountId}.pub`, publicKey)
 
           zip.generateAsync({type:"blob"})
           .then(function(content) {
-              saveAs(content, `${accountName}_key_pairs.zip`);
+              saveAs(content, `${accountName}_key_pairs.zip`)
 
               resolve()
           });
@@ -217,6 +229,18 @@ const actions = {
         throw err
       })
     }
+  },
+
+  appendRole ({state}, { accountId, roleName}) {
+    return commands.appendRole(
+      newCommandServiceOptions(state.accountQuorum), 
+      {
+        accountId: accountId,
+        roleName: roleName
+      })
+      .catch(err => {
+        throw err
+      })
   },
 
   addAssetQuantity ({state}, { assetId, amount }) {
@@ -268,13 +292,13 @@ const actions = {
         firstTxHash: undefined
       })
       .then(responses => {
-        commit(types.GET_ACCOUNT_TRANSACTIONS_SUCCESS, {
+        commit(types.GET_ACCOUNT_ASSET_TRANSACTIONS_SUCCESS, {
           assetId: assetId,
           transactions: responses
         })
       })
       .catch(err => {
-        commit(types.GET_ACCOUNT_TRANSACTIONS_FAILURE, err)
+        commit(types.GET_ACCOUNT_ASSET_TRANSACTIONS_FAILURE, err)
       })
   },
 
@@ -315,8 +339,8 @@ const actions = {
     })
   },
 
-  getAccountDetail ({ commit, state }) {
-    return queries.getAccount(
+  getAccountDetail ({ dispatch, commit, state }) {
+    return queries.getRawAccount(
       newQueryServiceOptions(),
       {
       accountId: state.accountId
@@ -324,8 +348,29 @@ const actions = {
     .then((account) => {
       commit(types.GET_ACCOUNT_SUCCESS, account)
     })
+    // .then(() => {
+    //   const rolePermissions = state.roles.map(role => {
+    //     return dispatch('getRolePermissions', role)
+    //   })
+
+    //   return Promise.all(rolePermissions)
+    // })
     .catch(err => {
       commit(types.GET_ACCOUNT_FAILURE, err)
+    })
+  },
+
+  getRolePermissions ({ commit, state }, roleId) {
+    return queries.getRolePermissions(
+      newQueryServiceOptions(),
+      {
+      roleId: roleId
+    })
+    .then((permission) => {
+      state.permissions = _.uniq(_.concat(state.permissions, permission))
+    })
+    .catch(err => {
+      throw err
     })
   }
 }

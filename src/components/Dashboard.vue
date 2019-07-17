@@ -21,9 +21,25 @@
               <i class="el-icon-coin"></i>
               <span>Add transaction</span>
             </template>
-            <el-menu-item index="/dashboard/create-account">Create new account</el-menu-item>
-            <el-menu-item index="/dashboard/create-asset">Create asset</el-menu-item>
-            <el-menu-item index="/dashboard/add-asset-qauntity">Add asset qauntity</el-menu-item>
+
+            <el-menu-item 
+              index="/dashboard/create-account" 
+              v-if="userRoles.includes('admin')">
+              Create new account
+            </el-menu-item>
+
+            <el-menu-item 
+              index="/dashboard/create-asset" 
+              v-if="userRoles.includes('money_creator')">
+              Create asset
+            </el-menu-item>
+
+            <el-menu-item 
+              index="/dashboard/add-asset-qauntity" 
+              v-if="userRoles.includes('money_creator')">
+              Add asset qauntity
+            </el-menu-item>
+            
             <el-menu-item index="/dashboard/transfer-asset">Transfer asset</el-menu-item>
             <el-menu-item index="/dashboard/account-detail">Account detail</el-menu-item>
           </el-submenu>
@@ -43,7 +59,7 @@
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions } from 'vuex'
+import { mapGetters, mapState, mapActions } from 'vuex'
 export default {
   name: 'Dashboard',
   data() {
@@ -64,7 +80,11 @@ export default {
       if (this.$route.path.includes('create-account')) return '/dashboard/create-account'
       if (this.$route.path.includes('account-detail')) return '/dashboard/account-detail'
       return this.$route.path
-    }
+    },
+
+    ...mapGetters({
+      userRoles: 'getUserRoles'
+    })
   },
   created () {
     this.getAccountDetail()
