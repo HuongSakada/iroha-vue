@@ -157,6 +157,18 @@ const actions = {
     })
   },
 
+  removeSignatory ({ commit, state}, publicKey) {
+    return commands.removeSignatory(
+      newCommandServiceOptions(state.accountQuorum), 
+      {
+      accountId: state.accountId,
+      publicKey: publicKey
+    })
+    .catch(err => {
+      throw err
+    })
+  },
+
   logout () {
     //Clear state value
     const s = initialState()
