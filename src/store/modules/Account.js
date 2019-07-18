@@ -16,7 +16,8 @@ const types = _([
   'GET_ACCOUNT',
   'GET_ACCOUNT_ASSETS',
   'GET_ACCOUNT_ASSET_TRANSACTIONS',
-  'GET_SIGNATORIES'
+  'GET_SIGNATORIES',
+  'SET_ACCOUNT_QUORUM'
 ]).chain()
   .flatMap(x => [x + '_SUCCESS', x + '_FAILURE'])
   .map(x => [x, x])
@@ -141,31 +142,60 @@ const mutations = {
   },
   [types.GET_SIGNATORIES_FAILURE] (state, error) {
     handleError(state, error)
+  },
+
+  [types.SET_ACCOUNT_QUORUM_SUCCESS] (state, quorum) {
+    state.accountQuorum = quorum
+  },
+  [types.SET_ACCOUNT_QUORUM_FAILURE] (state, error) {
+    handleError(state, error)
   }
 }
 
 const actions = {
-  addSignatory ({ commit, state}, publicKey) {
+  addSignatory ({ dispatch, state}, publicKey) {
     return commands.addSignatory(
       newCommandServiceOptions(state.accountQuorum), 
       {
       accountId: state.accountId,
       publicKey: publicKey
     })
+    .then(() => {
+      dispatch('setAccountQuorum', state.accountQuorum + 1)
+    })
     .catch(err => {
       throw err
     })
   },
 
-  removeSignatory ({ commit, state}, publicKey) {
+  removeSignatory ({dispatch, state}, publicKey) {
     return commands.removeSignatory(
       newCommandServiceOptions(state.accountQuorum), 
       {
       accountId: state.accountId,
       publicKey: publicKey
     })
+    .then(() => {
+      dispatch('setAccountQuorum', state.accountQuorum - 1)
+    })
     .catch(err => {
       throw err
+    })
+  },
+
+  setAccountQuorum ({commit, state}, quorum) {
+    return commands.setAccountQuorum(
+      newCommandServiceOptions(state.accountQuorum),
+      {
+        accountId: state.accountId,
+        quorum: quorum
+      }
+    )
+    .then(() => {
+      commit(types.SET_ACCOUNT_QUORUM_SUCCESS, quorum)
+    })
+    .catch(err => {
+      commit(types.SET_ACCOUNT_QUORUM_FAILURE, err)
     })
   },
 
