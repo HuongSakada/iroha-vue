@@ -5,19 +5,19 @@ import commands from 'iroha-helpers/lib/commands'
 import queries from 'iroha-helpers/lib/queries'
 import { cryptoHelper } from 'iroha-helpers'
 import { cache, newCommandServiceOptions, newQueryServiceOptions} from '../../utils/util'
+import { transactionAssetForm, pendingTransactionForm } from '../../utils/transaction-format'
 
 //Saving keypaires
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
-
-var moment = require('moment');
 
 const types = _([
   'GET_ACCOUNT',
   'GET_ACCOUNT_ASSETS',
   'GET_ACCOUNT_ASSET_TRANSACTIONS',
   'GET_SIGNATORIES',
-  'SET_ACCOUNT_QUORUM'
+  'SET_ACCOUNT_QUORUM',
+  'GET_PENDING_TRANSACTIONS'
 ]).chain()
   .flatMap(x => [x + '_SUCCESS', x + '_FAILURE'])
   .map(x => [x, x])
@@ -33,7 +33,7 @@ function initialState () {
       email: ''
     },
     rawAssetTransactions: {},
-    rawTransactions: [],
+    rawPendingTransactions: {},
     assets: [],
     accountQuorum: 0,
     roles: [],
@@ -50,47 +50,11 @@ const state = initialState()
 
 const getters = {
   transfers (state) {
-    let txs = Object.values(state.rawAssetTransactions)
-      .map(a => a.transactionsList)
-  
-    const  transformed = []
-    txs = _.flatten(txs);
+    return transactionAssetForm(state.rawAssetTransactions, state.accountId)
+  },
 
-    if (!_.isEmpty(txs)){
-      txs.forEach(t => {
-        const { commandsList, createdTime } = t.payload.reducedPayload
-    
-        commandsList.forEach(c => {
-          if (!c.transferAsset) return
-    
-          const {
-            amount,
-            assetId,
-            destAccountId,
-            srcAccountId,
-            description
-          } = c.transferAsset
-    
-          const tx = {
-            from: srcAccountId === state.accountId ? 'you' : _.split(srcAccountId, '@', 1),
-            to: destAccountId === state.accountId ? 'you' : _.split(destAccountId, '@', 1),
-            assetId: _.split(assetId, '#', 1),
-            amount: amount,
-            date: moment(createdTime).format('DD-MM-YYYY HH:MM'),
-            message: description
-          }
-    
-          transformed.push(tx)
-        })
-      })
-    }
-
-    return _(transformed)
-      .chain()
-      .uniqWith(_.isEqual)
-      .sortBy('date')
-      .reverse()
-      .value()
+  getPendingTransactions (state) {
+    return pendingTransactionForm(state.rawPendingTransactions)
   },
 
   allAssets (state) {
@@ -149,7 +113,14 @@ const mutations = {
   },
   [types.SET_ACCOUNT_QUORUM_FAILURE] (state, error) {
     handleError(state, error)
-  }
+  },
+
+  [types.GET_PENDING_TRANSACTIONS_SUCCESS] (state, pendingTransactions) {
+    state.rawPendingTransactions = pendingTransactions
+  },
+  [types.GET_PENDING_TRANSACTIONS_FAILURE] (state, error) {
+    handleError(state, error)
+  },
 }
 
 const actions = {
@@ -392,6 +363,15 @@ const actions = {
       })
   },
 
+  getPendingTransactions ({ commit, state }) {
+    return queries.getPendingTransactions(
+      newQueryServiceOptions(),
+      {
+        accountId: state.accountId
+      }
+    )
+  },
+
   getAccountAssets ({ commit, state }) {
     return queries.getAccountAssets(
       newQueryServiceOptions(),
@@ -452,6 +432,21 @@ const actions = {
       })
       .catch((err) => {
         commit(types.GET_SIGNATORIES_FAILURE, err)
+    })
+  },
+
+  getPendingTransactions ({ commit, state }) {
+    return queries.getPendingTransactions(
+      newQueryServiceOptions(),
+      {
+        accountId: state.accountId,
+        pageSize: 100
+      })
+      .then((pendingTransactions) => {
+        commit(types.GET_PENDING_TRANSACTIONS_SUCCESS, pendingTransactions)
+      })
+      .catch((err) => {
+        commit(types.GET_PENDING_TRANSACTIONS_FAILURE, err)
     })
   }
 }
