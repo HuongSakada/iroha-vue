@@ -8,9 +8,29 @@
               <el-table 
                 stripe
                 :data="pendingTransactions">
-                <el-table-column prop="label" label="Transaction type" />
+                <el-table-column prop="from" label="From" />
+                <el-table-column prop="to" label="To" />
+                <el-table-column prop="assetId" label="Asset" />
+                <el-table-column prop="amount" label="Amount" />
+                <el-table-column prop="message" label="Message" />
                 <el-table-column prop="date" label="Date" />
+                <el-table-column label="Action">
+                  <template slot-scope="scope">
+                    <div class="transaction_action">
+                      <el-button
+                        size="small"
+                        type="danger"
+                        plain
+                        @click="onSignPendingTransaction(scope.row.id, scope.row.signatures)"
+                      >
+                        Confirm
+                      </el-button>
+                    </div>
+                  </template>
+                </el-table-column>
               </el-table>
+
+              <!-- {{pendingTransactions}} -->
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -41,13 +61,29 @@ export default {
   methods: {
     ...mapActions([
       'getAllAccountAssetsTransactions',
-      'getPendingTransactions'
-    ])
+      'getRawPendingTransactions',
+      'signPendingTransaction'
+    ]),
+    onSignPendingTransaction (txStoreId, signatures) {
+      this.signPendingTransaction(txStoreId)
+      .then(() => {
+        this.$message({
+          message: 'Confirm transaction successful!',
+          type: 'success'
+        })
+      })
+      .catch(err => {
+        console.error(err)
+        this.$alert(err.message, 'Confirm transaction error', {
+          type: 'error'
+        })
+      })
+    }
   },
 
   created () {
     this.getAllAccountAssetsTransactions()
-    this.getPendingTransactions()
+    this.getRawPendingTransactions()
   }
 }
 </script>

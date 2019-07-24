@@ -3,9 +3,9 @@ import Vue from 'vue'
 import _ from 'lodash'
 import commands from 'iroha-helpers/lib/commands'
 import queries from 'iroha-helpers/lib/queries'
-import { cryptoHelper } from 'iroha-helpers'
-import { cache, newCommandServiceOptions, newQueryServiceOptions} from '../../utils/util'
-import { transactionAssetForm, pendingTransactionForm } from '../../utils/transaction-format'
+import { cryptoHelper, signWithArrayOfKeys, sendTransactions } from 'iroha-helpers'
+import { cache,newCommandService, newCommandServiceOptions, newQueryServiceOptions} from '../../utils/util'
+import { transactionAssetForm, pendingTransactionForm, getTransferAssetsFrom } from '../../utils/transaction-format'
 
 //Saving keypaires
 import JSZip from 'jszip'
@@ -33,7 +33,7 @@ function initialState () {
       email: ''
     },
     rawAssetTransactions: {},
-    rawPendingTransactions: {},
+    rawPendingTransactions: [],
     assets: [],
     accountQuorum: 0,
     roles: [],
@@ -50,11 +50,25 @@ const state = initialState()
 
 const getters = {
   transfers (state) {
-    return transactionAssetForm(state.rawAssetTransactions, state.accountId)
+    let transactions = _.cloneDeep(state.rawAssetTransactions)
+    let txs = Object.values(transactions)
+      .map(a => a.transactionsList)
+
+    return transactionAssetForm(txs, state.accountId)
   },
 
   getPendingTransactions (state) {
-    return pendingTransactionForm(state.rawPendingTransactions)
+    // let transactions = _.cloneDeep(state.rawPendingTransactions)
+    // let txs = Object.values(transactions)
+    //   .map(a => a.transactionsList)
+
+    // return transactionAssetForm(txs, state.accountId)
+    let pendingTransactionsCopy = _.cloneDeep(state.rawPendingTransactions)
+
+    return !Array.isArray(pendingTransactionsCopy) ? transactionAssetForm(
+      pendingTransactionsCopy.toObject().transactionsList,
+      state.accountId
+    ) : []
   },
 
   allAssets (state) {
@@ -124,6 +138,26 @@ const mutations = {
 }
 
 const actions = {
+  signPendingTransaction ({ commit, state }, txStoreId ) {
+    let transaction = state.rawPendingTransactions.getTransactionsList()[txStoreId]
+    let txToSend = _.cloneDeep(transaction)
+    txToSend.clearSignaturesList()
+
+    txToSend = signWithArrayOfKeys(txToSend, [cache.key])
+
+    return sendTransactions(
+      [txToSend], 
+      newCommandService(), 
+      500, 
+      [
+        'COMMITTED'
+      ]
+    )
+    .catch(err => {
+      throw err
+    })
+  },
+
   addSignatory ({ dispatch, state}, publicKey) {
     return commands.addSignatory(
       newCommandServiceOptions(state.accountQuorum), 
@@ -363,15 +397,6 @@ const actions = {
       })
   },
 
-  getPendingTransactions ({ commit, state }) {
-    return queries.getPendingTransactions(
-      newQueryServiceOptions(),
-      {
-        accountId: state.accountId
-      }
-    )
-  },
-
   getAccountAssets ({ commit, state }) {
     return queries.getAccountAssets(
       newQueryServiceOptions(),
@@ -435,13 +460,9 @@ const actions = {
     })
   },
 
-  getPendingTransactions ({ commit, state }) {
-    return queries.getPendingTransactions(
-      newQueryServiceOptions(),
-      {
-        accountId: state.accountId,
-        pageSize: 100
-      })
+  getRawPendingTransactions ({ commit, state }) {
+    return queries.getRawPendingTransactions(
+      newQueryServiceOptions())
       .then((pendingTransactions) => {
         commit(types.GET_PENDING_TRANSACTIONS_SUCCESS, pendingTransactions)
       })

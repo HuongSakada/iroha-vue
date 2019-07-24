@@ -11,12 +11,16 @@ export const cache = {
   nodeIp: 'http://0.0.0.0:8081'
 }
 
+export function newCommandService () {
+  return new CommandService(cache.nodeIp)
+}
+
 export function newCommandServiceOptions (quorum) {
   return {
     privateKeys: [cache.key],
     quorum,
     creatorAccountId: cache.username,
-    commandService: new CommandService(cache.nodeIp),
+    commandService: newCommandService(),
     timeoutLimit: DEFAULT_TIMEOUT_LIMIT
   }
 }

@@ -3,15 +3,17 @@ import _ from 'lodash'
 var moment = require('moment');
 
 export function transactionAssetForm (transactions, accountId) {
-    let txs = Object.values(transactions)
-      .map(a => a.transactionsList)
+    // let txs = Object.values(transactions)
+    //   .map(a => a.transactionsList)
 
     const  transformed = []
-    txs = _.flatten(txs);
+    let txs = _.flatten(transactions);
 
     if (!_.isEmpty(txs)){
-      txs.forEach(t => {
+      txs.forEach((t, index) => {
         const { commandsList, createdTime } = t.payload.reducedPayload
+        const batch = t.payload.batch
+        const signatures = t.signaturesList.map(x => Buffer.from(x.publicKey, 'base64').toString('hex'))
     
         commandsList.forEach(c => {
           if (!c.transferAsset) return
@@ -30,7 +32,10 @@ export function transactionAssetForm (transactions, accountId) {
             assetId: _.split(assetId, '#', 1),
             amount: amount,
             date: moment(createdTime).format('DD-MM-YYYY HH:MM'),
-            message: description
+            message: description,
+            batch,
+            signatures,
+            id: index,
           }
     
           transformed.push(tx)
@@ -48,7 +53,8 @@ export function transactionAssetForm (transactions, accountId) {
 
 export function pendingTransactionForm (transactions) {
   const  transformed = []
-    let txs = _.flatten(transactions);
+  let txs = Object.values(transactions)
+  txs = _.flatten(txs);
 
     if (!_.isEmpty(txs)){
       txs.forEach(t => {
@@ -56,20 +62,19 @@ export function pendingTransactionForm (transactions) {
     
 
         commandsList.forEach(command => {
-          // console.log(command)
+          // _.forEach(command, function(value, key) {
+          //   if(!_.isUndefined(value)){
+          //     const txs = {
+          //       date: moment(createdTime).format('DD-MM-YYYY HH:MM'),
+          //       label: titleCase(splitCamelCase(key)),
+          //       type: key,
+          //       data: value
+          //     }
 
-          _.forEach(command, function(value, key) {
-            if(!_.isUndefined(value)){
-              const txs = {
-                date: moment(createdTime).format('DD-MM-YYYY HH:MM'),
-                label: titleCase(key.replace(/([a-z](?=[A-Z]))/g, '$1 ')),
-                type: key,
-                data: value
-              }
-
-              transformed.push(txs)
-            }
-          });
+          //     transformed.push(txs)
+          //   }
+          // });
+          transformed.push(command)
         })
       })
     }
@@ -80,10 +85,16 @@ export function pendingTransactionForm (transactions) {
       .value()
 }
 
-function titleCase(str) {
+export function titleCase(str) {
   str = str.toLowerCase().split(' ');
+
   for (var i = 0; i < str.length; i++) {
     str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1); 
   }
+
   return str.join(' ');
+}
+
+export function splitCamelCase(str) {
+  return str.replace(/([a-z](?=[A-Z]))/g, '$1 ')
 }
