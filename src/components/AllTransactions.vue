@@ -8,11 +8,7 @@
               <el-table 
                 stripe
                 :data="pendingTransactions">
-                <el-table-column prop="from" label="From" />
-                <el-table-column prop="to" label="To" />
-                <el-table-column prop="assetId" label="Asset" />
-                <el-table-column prop="amount" label="Amount" />
-                <el-table-column prop="message" label="Message" />
+                <el-table-column prop="label" label="Label" />
                 <el-table-column prop="date" label="Date" />
                 <el-table-column label="Action">
                   <template slot-scope="scope">
@@ -29,8 +25,6 @@
                   </template>
                 </el-table-column>
               </el-table>
-
-              <!-- {{pendingTransactions}} -->
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -67,6 +61,9 @@ export default {
     onSignPendingTransaction (txStoreId, signatures) {
       this.signPendingTransaction(txStoreId)
       .then(() => {
+        this.getAllAccountAssetsTransactions()
+        this.getRawPendingTransactions()
+
         this.$message({
           message: 'Confirm transaction successful!',
           type: 'success'

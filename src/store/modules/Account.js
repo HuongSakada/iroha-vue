@@ -58,16 +58,10 @@ const getters = {
   },
 
   getPendingTransactions (state) {
-    // let transactions = _.cloneDeep(state.rawPendingTransactions)
-    // let txs = Object.values(transactions)
-    //   .map(a => a.transactionsList)
-
-    // return transactionAssetForm(txs, state.accountId)
     let pendingTransactionsCopy = _.cloneDeep(state.rawPendingTransactions)
-
-    return !Array.isArray(pendingTransactionsCopy) ? transactionAssetForm(
-      pendingTransactionsCopy.toObject().transactionsList,
-      state.accountId
+    
+    return !Array.isArray(pendingTransactionsCopy) ? pendingTransactionForm(
+      pendingTransactionsCopy.toObject().transactionsList
     ) : []
   },
 

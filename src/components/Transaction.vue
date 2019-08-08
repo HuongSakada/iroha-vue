@@ -2,7 +2,7 @@
     <div>
         <el-table 
             stripe
-            :data="transactions">
+            :data="transactions.slice((currentPage-1)*pagesize, currentPage*pagesize)">
             <el-table-column prop="from" label="From" />
             <el-table-column prop="to" label="To" />
             <el-table-column prop="assetId" label="Asset" />
@@ -10,6 +10,14 @@
             <el-table-column prop="message" label="Message" />
             <el-table-column prop="date" label="Date" />
         </el-table>
+        
+        <div style="text-align: center; margin-top: 20px">
+            <el-pagination
+            layout="prev, pager, next"
+            :total="transactions.length"
+            @current-change="current_change">
+        </el-pagination>
+        </div>
     </div>
 </template>
 
@@ -20,6 +28,18 @@ export default {
         transactions: {
             type: Array,
             required: true
+        }
+    },
+    data() {
+        return {
+            total: 0,
+            pagesize:10,
+            currentPage:1
+        }
+    },
+    methods: {
+        current_change:function(currentPage){
+            this.currentPage = currentPage;
         }
     }
 }

@@ -3,8 +3,6 @@ import _ from 'lodash'
 var moment = require('moment');
 
 export function transactionAssetForm (transactions, accountId) {
-    // let txs = Object.values(transactions)
-    //   .map(a => a.transactionsList)
 
     const  transformed = []
     let txs = _.flatten(transactions);
@@ -53,36 +51,38 @@ export function transactionAssetForm (transactions, accountId) {
 
 export function pendingTransactionForm (transactions) {
   const  transformed = []
-  let txs = Object.values(transactions)
-  txs = _.flatten(txs);
+  let txs = _.flatten(transactions)
 
-    if (!_.isEmpty(txs)){
-      txs.forEach(t => {
-        const { commandsList, createdTime } = t.payload.reducedPayload
-    
+  if (!_.isEmpty(txs)){
+    txs.forEach((t, index) => {
+      const { commandsList, createdTime } = t.payload.reducedPayload
+      const batch = t.payload.batch
+      const signatures = t.signaturesList.map(x => Buffer.from(x.publicKey, 'base64').toString('hex'))
+  
+      commandsList.forEach(command => {
+        _.forEach(command, function(value, key) {
+          if(!_.isUndefined(value)){
+            const txs = {
+              date: moment(createdTime).format('DD-MM-YYYY HH:MM'),
+              label: titleCase(splitCamelCase(key)),
+              type: key,
+              data: value,
+              batch,
+              signatures,
+              id: index,
+            }
 
-        commandsList.forEach(command => {
-          // _.forEach(command, function(value, key) {
-          //   if(!_.isUndefined(value)){
-          //     const txs = {
-          //       date: moment(createdTime).format('DD-MM-YYYY HH:MM'),
-          //       label: titleCase(splitCamelCase(key)),
-          //       type: key,
-          //       data: value
-          //     }
-
-          //     transformed.push(txs)
-          //   }
-          // });
-          transformed.push(command)
+            transformed.push(txs)
+          }
         })
       })
-    }
+    })
+  }
 
-    return _(transformed)
-      .chain()
-      .uniqWith(_.isEqual)
-      .value()
+  return _(transformed)
+    .chain()
+    .uniqWith(_.isEqual)
+    .value()
 }
 
 export function titleCase(str) {
