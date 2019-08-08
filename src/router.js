@@ -3,6 +3,8 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
+export const lazyComponent = (name) => () => import(`@/components/${name}.vue`)
+
 const ifNotAuthenticated = (to, from, next) => {
   if (localStorage.getItem('user-token') === null) {
     next()
@@ -29,54 +31,59 @@ const router = new VueRouter({
     {
       path: '/login',
       name: 'login',
-      component: require('@/components/Login').default,
+      component: lazyComponent('Login'),
       beforeEnter: ifNotAuthenticated
     },
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: require('@/components/Dashboard').default,
+      component: lazyComponent('Dashboard'),
       beforeEnter: ifAuthenticated,
       children: [
         {
           path: 'create-asset',
           name: 'create-asset',
-          component: require('@/components/CreateAsset').default
+          component: lazyComponent('CreateAsset')
         },
         {
           path: 'transactions',
           name: 'transactions',
-          component: require('@/components/AllTransactions').default,
+          component: lazyComponent('AllTransactions'),
         },
         {
           path: 'transfer-asset',
           name: 'transfer-asset',
-          component: require('@/components/TransferAsset').default,
+          component: lazyComponent('TransferAsset'),
         },
         {
           path: 'add-asset-qauntity',
           name: 'add-asset-qauntity',
-          component: require('@/components/AddAssetQuantity').default,
+          component: lazyComponent('AddAssetQuantity'),
         },
         {
           path: 'create-account',
           name: 'create-account',
-          component: require('@/components/CreateAccount').default,
+          component: lazyComponent('CreateAccount'),
         },
         {
           path: 'account-detail',
           name: 'account-detail',
-          component: require('@/components/AccountDetail').default,
+          component: lazyComponent('AccountDetail'),
         },
         {
           path: 'add-signatory',
           name: 'add-signatory',
-          component: require('@/components/AddSignatory').default,
+          component: lazyComponent('AddSignatory'),
         },
         {
           path: 'remove-signatory',
           name: 'remove-signatory',
-          component: require('@/components/RemoveSignatory').default,
+          component: lazyComponent('RemoveSignatory'),
+        },
+        {
+          path: 'assets',
+          name: 'assets',
+          component: lazyComponent('Assets'),
         }
       ]
     },
