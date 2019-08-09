@@ -13,10 +13,11 @@
         
         <div style="text-align: center; margin-top: 20px">
             <el-pagination
-            layout="prev, pager, next"
-            :total="transactions.length"
-            @current-change="current_change">
-        </el-pagination>
+                layout="prev, pager, next"
+                :page-size="pagesize"
+                :total="transactions.length"
+                @current-change="current_change">
+            </el-pagination>
         </div>
     </div>
 </template>
@@ -32,7 +33,6 @@ export default {
     },
     data() {
         return {
-            total: 0,
             pagesize:10,
             currentPage:1
         }
