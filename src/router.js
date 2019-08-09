@@ -81,9 +81,16 @@ const router = new VueRouter({
           component: lazyComponent('RemoveSignatory'),
         },
         {
-          path: 'assets',
-          name: 'assets',
-          component: lazyComponent('Assets'),
+          path: 'asset-page',
+          name: 'asset-page',
+          component: lazyComponent('AssetPage'),
+          children: [
+            {
+              path: ':assetId',
+              name: 'asset',
+              component: lazyComponent('Asset')
+            }
+          ]
         }
       ]
     },

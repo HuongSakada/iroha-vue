@@ -1,4 +1,5 @@
 <template>
+<el-card class="box-card">
     <div class="all-transactions">
         <el-tabs v-model="activeName">
             <el-tab-pane label="All transactions" name="allTransactions">
@@ -28,6 +29,7 @@
             </el-tab-pane>
         </el-tabs>
     </div>
+</el-card>
 </template>
 
 <script>

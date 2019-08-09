@@ -65,8 +65,32 @@ const getters = {
     ) : []
   },
 
+  getTransactionByAssetId: (state) => (assetId) => {
+    let transactions = _.cloneDeep(state.rawAssetTransactions)
+
+    return transactionAssetForm(transactions[assetId].transactionsList, state.accountId)
+  },
+
   allAssets (state) {
     return state.assets
+  },
+
+  assets (state) {
+    const assets = state.assets.map(a => {
+      const assetParts = a.assetId.split('#')
+      const assetName = assetParts[0].toLowerCase()
+
+      return {
+        id: a.assetId.replace(/#/g, '$'),
+        assetId: a.assetId,
+        name: _.upperFirst(assetName),
+        domain: assetParts[1].toLowerCase(),
+        amount: a.balance,
+        precision: a.balance.precision
+      }
+    })
+
+    return assets.filter(Boolean)
   },
 
   getUserRoles (state) {

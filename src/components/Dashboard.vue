@@ -46,13 +46,17 @@
             <el-menu-item index="/dashboard/account-detail">Account detail</el-menu-item>
           </el-submenu>
 
+          <el-menu-item index="/dashboard/asset-page">
+            <span slot="title">Assets</span>
+          </el-menu-item>
+
           <el-menu-item index="/logout" @click="onLogout">
             <span slot="title">Logout</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
     
-      <el-main id='main'>
+      <el-main id='main' style="padding: 0px;">
         <router-view />
       </el-main>
     </el-container>
@@ -76,13 +80,14 @@ export default {
 
     currentActiveMenu: function () {
       if (this.$route.path.includes('transactions')) return '/dashboard/transactions'
-      if (this.$route.path.includes('create-asset')) return '/dashboard/create-asset'
-      if (this.$route.path.includes('transfer-asset')) return '/dashboard/transfer-asset'
-      if (this.$route.path.includes('add-asset-qauntity')) return '/dashboard/add-asset-qauntity'
-      if (this.$route.path.includes('create-account')) return '/dashboard/create-account'
-      if (this.$route.path.includes('account-detail')) return '/dashboard/account-detail'
-      if (this.$route.path.includes('add-signatory')) return '/dashboard/add-signatory'
-      if (this.$route.path.includes('remove-signatory')) return '/dashboard/remove-signatory'
+      // if (this.$route.path.includes('create-asset')) return '/dashboard/create-asset'
+      // if (this.$route.path.includes('transfer-asset')) return '/dashboard/transfer-asset'
+      // if (this.$route.path.includes('add-asset-qauntity')) return '/dashboard/add-asset-qauntity'
+      // if (this.$route.path.includes('create-account')) return '/dashboard/create-account'
+      // if (this.$route.path.includes('account-detail')) return '/dashboard/account-detail'
+      // if (this.$route.path.includes('add-signatory')) return '/dashboard/add-signatory'
+      // if (this.$route.path.includes('remove-signatory')) return '/dashboard/remove-signatory'
+      if (this.$route.path.includes('asset-page')) return '/dashboard/asset-page'
       return this.$route.path
     },
 
@@ -122,7 +127,7 @@ export default {
     font-weight: bolder;
   }
   .el-aside {
-    width: 250px;
+    width: 250px !important;
     height: 100vh;
     border-right: 1px solid #e43e33;
   }
